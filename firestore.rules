@@ -1,0 +1,51 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Teachers collection - Only admins can read/write
+    match /teachers/{teacherId} {
+      allow read, write: if request.auth != null && request.auth.token.admin == true;
+    }
+    
+    // Students collection - Admins can read/write, parents can read their own child's data
+    match /students/{studentId} {
+      allow read, write: if request.auth != null && request.auth.token.admin == true;
+      allow read: if request.auth != null && 
+                     request.auth.uid == resource.data.studentId;
+    }
+    
+    // Grades collection - Only admins can read/write
+    match /grades/{gradeId} {
+      allow read, write: if request.auth != null && request.auth.token.admin == true;
+    }
+    
+    // Exams collection - Only admins can read/write
+    match /exams/{examId} {
+      allow read, write: if request.auth != null && request.auth.token.admin == true;
+    }
+    
+    // Attendance collection - Admins can read/write, parents can read their child's attendance
+    match /attendance/{attendanceId} {
+      allow read, write: if request.auth != null && request.auth.token.admin == true;
+      allow read: if request.auth != null && 
+                     request.auth.uid == resource.data.studentId;
+    }
+    
+    // Exam scores collection - Admins can read/write, parents can read their child's scores
+    match /examScores/{scoreId} {
+      allow read, write: if request.auth != null && request.auth.token.admin == true;
+      allow read: if request.auth != null && 
+                     request.auth.uid == resource.data.studentId;
+    }
+    
+    // Admin users collection - Only admins can access
+    match /admins/{adminId} {
+      allow read, write: if request.auth != null && request.auth.token.admin == true;
+    }
+    
+    // Default rule - deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
